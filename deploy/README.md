@@ -35,7 +35,34 @@ they touch infrastructure that doesn't exist until you provision it).
 
 ---
 
-## Part 1 — Backend on Oracle Cloud
+## Part 1 — Backend on Render (recommended)
+
+Render's free tier needs no credit card, which is why it's the default here. 512MB RAM, 0.1 CPU,
+sleeps after 15 idle minutes with a ~1 minute cold start, 750 instance-hours/month per workspace.
+The measured footprint is 186MB peak, so the RAM is not the constraint — the 0.1 CPU is what makes
+cold starts slow.
+
+`render.yaml` at the repo root already declares the service, so there's no dashboard
+configuration to get wrong.
+
+1. **(you)** Sign up at [render.com](https://render.com) and connect your GitHub account.
+2. **(you)** **New → Blueprint**, pick `iamdipansh/fusion-expression-rag`. Render reads
+   `render.yaml` and configures the service itself.
+3. **(you)** It will prompt for `FUSION_RAG_GEMINI_API_KEY` — the one value marked `sync: false`,
+   so it lives in the dashboard rather than the repo. Paste the same key from `server/.env`. In
+   lexical mode this powers both the sufficiency gate and keyless generation, so the service
+   can't answer without it.
+4. **(you)** Deploy. First build takes a few minutes.
+5. Verify: `curl https://<your-service>.onrender.com/health` → `{"status":"ok","index_loaded":true}`
+
+`index_loaded: true` confirms the committed LanceDB index shipped with the repo — that's the whole
+reason it's tracked (see CLAUDE.md's copyright note).
+
+Then skip to **Part 2** for the frontend, and **Part 3** to point CORS at it.
+
+---
+
+## Part 1 (alternative) — Backend on Oracle Cloud
 
 ### 1. Create an Oracle Cloud account **(you)**
 
@@ -181,8 +208,13 @@ done.
 The backend only accepts requests from origins listed in `CORS_ORIGINS`. Update it now that you
 have the real Vercel URL:
 
+**On Render:** dashboard → your service → **Environment** → set
+`FUSION_RAG_CORS_ORIGINS` to `["https://your-app.vercel.app"]` (a JSON array, not
+comma-separated — pydantic-settings parses list fields as JSON). Saving triggers a redeploy.
+
+**On an Oracle VM instead:**
+
 ```bash
-# On the VM:
 cd ~/fusion-expression-rag/deploy
 nano .env   # set CORS_ORIGINS=["https://fusion-expression-rag.vercel.app"]
 docker compose up -d
