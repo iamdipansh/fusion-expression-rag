@@ -28,3 +28,7 @@ class QueryResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     index_loaded: bool
+    retrieval_mode: str
+    # Counts and versions only, never chunk text — `index_loaded` alone proved useless on the
+    # first Render deploy, reporting true while every query retrieved nothing.
+    index: dict[str, object] = {}

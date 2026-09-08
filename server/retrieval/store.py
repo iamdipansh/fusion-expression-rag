@@ -134,3 +134,31 @@ def sparse_search(query_sparse: SparseVector, limit: int) -> list[Chunk]:
 
     scores.sort(key=lambda x: x[0], reverse=True)
     return [chunks_by_id[chunk_id] for _, chunk_id in scores[:limit]]
+
+
+def index_diagnostics() -> dict[str, object]:
+    """What `/health` reports about the index beyond "the directory exists".
+
+    Added after a deploy where `index_loaded: true` was true and retrieval still returned zero
+    chunks for every query — the path existed, but the FTS index wasn't usable in that
+    environment. Path existence is not a useful health signal on its own; whether a search
+    actually returns rows is. Returns only counts and versions, never chunk text.
+    """
+    info: dict[str, object] = {"lancedb_version": getattr(lancedb, "__version__", "unknown")}
+    try:
+        db = _connect()
+        info["tables"] = db.table_names()
+        tbl = db.open_table(settings.lancedb_table)
+        info["rows"] = tbl.count_rows()
+        try:
+            info["indices"] = [str(i) for i in tbl.list_indices()]
+        except Exception as e:
+            info["indices"] = f"list_indices failed: {type(e).__name__}: {e}"
+        try:
+            hits = tbl.search("transform", query_type="fts").limit(3).to_list()
+            info["fts_probe_hits"] = len(hits)
+        except Exception as e:
+            info["fts_probe_hits"] = f"{type(e).__name__}: {e}"
+    except Exception as e:
+        info["error"] = f"{type(e).__name__}: {e}"
+    return info

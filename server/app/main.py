@@ -19,5 +19,11 @@ app.include_router(query.router)
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
-    index_loaded = settings.lancedb_uri.exists()
-    return HealthResponse(status="ok", index_loaded=index_loaded)
+    from retrieval.store import index_diagnostics
+
+    return HealthResponse(
+        status="ok",
+        index_loaded=settings.lancedb_uri.exists(),
+        retrieval_mode=settings.retrieval_mode,
+        index=index_diagnostics(),
+    )
