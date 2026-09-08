@@ -1,0 +1,4 @@
+.DS_Store
+
+# Session/runtime state, not project config
+.claude/scheduled_tasks.lock
