@@ -13,9 +13,11 @@ from config import Sufficiency, settings
 from generation.local_llm import classify_sufficiency, rewrite_query
 from generation.synthesize import TIER_FOR_SUFFICIENCY, synthesize
 from ingestion.chunk import Chunk
-from retrieval.embed import embed_query
-from retrieval.rerank import rerank
 from retrieval.store import dense_search, lexical_search, sparse_search
+
+# retrieval.embed and retrieval.rerank are imported lazily inside the hybrid-only functions
+# below. Both reach torch, and lexical mode has to import this module on an install that doesn't
+# contain it (see config.retrieval_mode).
 
 if TYPE_CHECKING:
     from app.schemas import QueryResponse
@@ -28,6 +30,18 @@ def lexical_baseline_retrieve(
     just raw BM25-style FTS on the question as typed. Everything downstream (milestone 4's
     dense+RRF+rerank) gets measured as a delta against this number."""
     return lexical_search(question, limit)
+
+
+def lexical_expanded_retrieve(
+    question: str, limit: int = settings.retrieval_candidates
+) -> list[Chunk]:
+    """BM25 plus glossary-only expansion — the whole retrieval path of a model-free stack, since
+    neither SQLite FTS5 nor `expand_query_without_model` loads a model. Measured against
+    `lexical_baseline_retrieve` (no expansion) and the full hybrid stack, this is what says
+    whether ~5.5GB of resident models is buying enough to be worth what it costs to host."""
+    from generation.local_llm import expand_query_without_model
+
+    return lexical_search(expand_query_without_model(question), limit)
 
 
 def expand_query(question: str) -> str:
@@ -51,7 +65,13 @@ def reciprocal_rank_fusion(
     return [chunks_by_id[cid] for cid in ranked_ids]
 
 
-def check_sufficiency(question: str, chunks: list[Chunk]) -> Sufficiency:
+async def check_sufficiency(question: str, chunks: list[Chunk]) -> Sufficiency:
+    """Lexical mode has no local model to ask, so the gate goes to Gemini there. Hybrid mode
+    keeps the local Qwen classifier, which needs no key."""
+    if settings.retrieval_mode == "lexical":
+        from generation.synthesize import classify_sufficiency_remote
+
+        return await classify_sufficiency_remote(question, chunks)
     return classify_sufficiency(question, chunks)
 
 
@@ -60,6 +80,8 @@ def retrieve_candidates(question: str, expanded: str | None = None) -> list[Chun
     CLAUDE.md's tuning heuristic is that this stage only has to land the right chunk somewhere
     in the top ~30; separating this from `retrieve()` lets recall@k here be measured on its own,
     independent of whether the reranker then puts it in the final top few."""
+    from retrieval.embed import embed_query
+
     if expanded is None:
         expanded = expand_query(question)
     dense_vector, sparse_vector = embed_query(expanded)
@@ -69,6 +91,13 @@ def retrieve_candidates(question: str, expanded: str | None = None) -> list[Chun
 
 
 def retrieve(question: str) -> list[Chunk]:
+    """The serving path, dispatched on config.retrieval_mode — see that setting for the measured
+    difference between the two (one question on the gold set, for ~5.5GB of resident models)."""
+    if settings.retrieval_mode == "lexical":
+        return lexical_expanded_retrieve(question, limit=settings.rerank_top_k)
+
+    from retrieval.rerank import rerank
+
     expanded = expand_query(question)
     candidates = retrieve_candidates(question, expanded=expanded)
     return rerank(expanded, candidates, top_k=settings.rerank_top_k)
@@ -78,7 +107,7 @@ async def answer_query(question: str, anthropic_api_key: str | None) -> "QueryRe
     from app.schemas import Citation, QueryResponse
 
     chunks = retrieve(question)
-    sufficiency = check_sufficiency(question, chunks)
+    sufficiency = await check_sufficiency(question, chunks)
     tier = TIER_FOR_SUFFICIENCY[sufficiency]
     answer = await synthesize(question, chunks, tier, anthropic_api_key)
     # UNVERIFIED means nothing relevant was retrieved — citing the (irrelevant) top-k chunks

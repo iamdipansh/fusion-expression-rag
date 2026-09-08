@@ -95,6 +95,14 @@ def _make_retriever(name: str):  # type: ignore[no-untyped-def]
         from retrieval.hybrid import lexical_baseline_retrieve
 
         return lambda q: lexical_baseline_retrieve(q, limit=10)
+    if name == "lexical-expanded":
+        # BM25 plus the glossary expansion, still loading no models — the retrieval half of a
+        # stack that would fit a free host without a credit card. Its delta against
+        # lexical-baseline isolates how much of the expansion win is the glossary rather than
+        # the 0.5B rewrite.
+        from retrieval.hybrid import lexical_expanded_retrieve
+
+        return lambda q: lexical_expanded_retrieve(q, limit=10)
     if name == "hybrid-candidates":
         # Pre-rerank: dense + bge-m3-sparse fused with RRF. Measures the embedder/fusion stage
         # on its own — CLAUDE.md's heuristic is this stage only needs the right chunk somewhere
@@ -118,9 +126,10 @@ def main() -> None:
     parser.add_argument("--run-name", required=True)
     parser.add_argument(
         "--retriever",
-        choices=["lexical-baseline", "hybrid-candidates", "hybrid-reranked"],
+        choices=["lexical-baseline", "lexical-expanded", "hybrid-candidates", "hybrid-reranked"],
         default="lexical-baseline",
-        help="lexical-baseline = milestone 3 (BM25/FTS only). hybrid-candidates = milestone 4's "
+        help="lexical-baseline = milestone 3 (BM25/FTS only). lexical-expanded = the same plus "
+        "glossary query expansion, still model-free. hybrid-candidates = milestone 4's "
         "dense+bge-m3-sparse+RRF, pre-rerank. hybrid-reranked = the full pipeline including the "
         "cross-encoder rerank.",
     )

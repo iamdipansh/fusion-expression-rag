@@ -12,16 +12,23 @@ dependencies = [
     "pdfplumber>=0.11",
     "lancedb>=0.15",
     "tiktoken>=0.8",
-    "FlagEmbedding>=1.3",
-    "onnxruntime>=1.19",
     "httpx>=0.27",
     "anthropic>=0.40",
     "google-genai>=0.3",
-    "transformers>=4.46",
-    "torch>=2.4",
 ]
 
 [project.optional-dependencies]
+# Everything the hybrid retrieval path needs, kept out of the base install because torch and its
+# friends are ~2-3GB unpacked and lexical mode never imports them (see config.retrieval_mode).
+# `pip install .` gives the lean serving image; `pip install '.[hybrid]'` gives the full local
+# dev/eval stack. Imports of these are lazy at every call site, so the split is enforced by more
+# than convention.
+hybrid = [
+    "FlagEmbedding>=1.3",
+    "onnxruntime>=1.19",
+    "transformers>=4.46",
+    "torch>=2.4",
+]
 dev = [
     "ruff>=0.7",
     "mypy>=1.13",

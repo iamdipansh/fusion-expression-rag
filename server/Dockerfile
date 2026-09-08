@@ -18,6 +18,13 @@ COPY ingestion ingestion
 COPY retrieval retrieval
 COPY generation generation
 
+# Lean by default: this installs neither torch nor transformers nor FlagEmbedding (they live in
+# the `hybrid` extra), which is what keeps the image in the hundreds of MB rather than several GB
+# and lets it run on a 512MB free tier. The container therefore must run in lexical retrieval
+# mode — FUSION_RAG_RETRIEVAL_MODE=lexical, set in deploy/docker-compose.yml.
+#
+# For a full hybrid image instead (needs ~5.5GB RAM at runtime, so a bigger host):
+#   RUN pip install --no-cache-dir '.[hybrid]'
 RUN pip install --no-cache-dir .
 
 # bge-m3, bge-reranker-v2-m3, and Qwen2.5-0.5B-Instruct download from the Hugging Face Hub on

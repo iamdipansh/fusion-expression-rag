@@ -663,7 +663,8 @@ def main() -> None:
             # in eval/run_eval.py.
             pages_by_breadcrumb: dict[str, list[int]] = {}
             for c in source_chunks:
-                r = pages_by_breadcrumb.setdefault(c["breadcrumb"], [c["page_start"], c["page_end"]])
+                default = [c["page_start"], c["page_end"]]
+                r = pages_by_breadcrumb.setdefault(c["breadcrumb"], default)
                 r[0] = min(r[0], c["page_start"])
                 r[1] = max(r[1], c["page_end"])
             pages = [pages_by_breadcrumb[b] for b in breadcrumbs]

@@ -1,10 +1,30 @@
 # Deploying Fusion Expression RAG
 
+## Which retrieval mode you're deploying
+
+The backend ships in **lexical** mode (`FUSION_RAG_RETRIEVAL_MODE=lexical`): BM25 over LanceDB's
+FTS index plus a string-matching glossary for query expansion, loading no models at all. That's a
+measured choice — on the 67-example gold set, lexical scored recall@10 0.955 / precision@5 0.334
+against the full hybrid stack's 0.970 / 0.358, tying exactly on the hardest category
+(composed_animation, 0.846 both). One question's difference, for ~5.5GB of resident models.
+
+What it buys: the image drops torch entirely and runs in roughly 200-400MB instead of ~6GB, so it
+fits free tiers that don't ask for a credit card (Render, Koyeb) rather than needing a 24GB VM.
+
+What it costs: the sufficiency gate and keyless generation both go to Gemini's free tier, so every
+query depends on an external API — a deliberate departure from CLAUDE.md's constraint #1 ("no paid
+API dependency in the serving path"), and bounded by that tier's ~1,000 requests/day.
+
+To deploy the hybrid stack instead: build with `pip install '.[hybrid]'` (see server/Dockerfile),
+set `FUSION_RAG_RETRIEVAL_MODE=hybrid`, and give it ~6GB RAM — which is what the Oracle
+instructions below are sized for.
+
+---
+
 Two services, two hosts, zero recurring cost:
 
-- **Backend** (`server/`) → Oracle Cloud's Always Free Ampere A1 VM — the only free tier with
-  enough RAM to hold bge-m3 + the reranker + Qwen2.5-0.5B in memory at once without sleeping or
-  cold-starting on every idle return.
+- **Backend** (`server/`) → Oracle Cloud's Always Free Ampere A1 VM if running hybrid; in lexical
+  mode any ~512MB free tier works, which sidesteps Oracle's credit-card verification entirely.
 - **Frontend** (`client/`) → Vercel's free tier — zero-config for Next.js, trivial for a mostly
   client-side app like this one.
 

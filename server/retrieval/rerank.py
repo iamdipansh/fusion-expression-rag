@@ -8,12 +8,18 @@ Free ARM VM instead, which never sleeps — see config.py's reranker_onnx_quanti
 if a sleep-tier host is ever added alongside it.
 """
 
-from FlagEmbedding import FlagReranker
+from typing import TYPE_CHECKING
 
 from config import settings
 from ingestion.chunk import Chunk
 
-_reranker: FlagReranker | None = None
+if TYPE_CHECKING:
+    from FlagEmbedding import FlagReranker
+
+# Imported inside _get_reranker rather than at module level: FlagEmbedding pulls in torch, and
+# lexical retrieval mode must be able to import this package without any of that reaching the
+# process (see config.retrieval_mode — a lean install doesn't have torch at all).
+_reranker: "FlagReranker | None" = None
 
 
 def _select_device() -> str:
@@ -25,9 +31,11 @@ def _select_device() -> str:
     return "mps" if torch.backends.mps.is_available() else "cpu"
 
 
-def _get_reranker() -> FlagReranker:
+def _get_reranker() -> "FlagReranker":
     global _reranker
     if _reranker is None:
+        from FlagEmbedding import FlagReranker
+
         _reranker = FlagReranker(settings.reranker_model, use_fp16=True, devices=_select_device())
     return _reranker
 

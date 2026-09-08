@@ -41,6 +41,21 @@ class Settings(BaseSettings):
     # sleep-tier host is ever added alongside it.
     reranker_onnx_quantized: bool = False
 
+    # "hybrid" = bge-m3 dense+sparse, RRF, cross-encoder rerank (~5.5GB resident with the local
+    # expansion model). "lexical" = BM25 over LanceDB's FTS index plus the string-matching
+    # glossary, loading no models at all (~200-400MB total, and the install drops torch entirely).
+    #
+    # The gap is one question: measured on the 67-example gold set, lexical-expanded-v1 scored
+    # recall@10 0.955 / precision@5 0.334 against hybrid-reranked-v4's 0.970 / 0.358, and the two
+    # tie exactly on composed_animation (0.846). That is 64/67 versus 65/67 — inside noise on a
+    # set this size, for ~5.5GB.
+    #
+    # Keeping both is nearly free: the mode-specific imports are lazy and the heavy dependencies
+    # live in the `hybrid` extra, so a `pip install .` image never contains torch. Lexical mode
+    # does move the sufficiency gate onto Gemini, which is a deliberate departure from CLAUDE.md's
+    # "no paid API dependency in the serving path" — see deploy/README.md.
+    retrieval_mode: Literal["lexical", "hybrid"] = "hybrid"
+
     # Retrieval — hybrid, non-negotiable
     lancedb_uri: Path = INDEX_DIR / "fusion_manual.lancedb"
     lancedb_table: str = "chunks"

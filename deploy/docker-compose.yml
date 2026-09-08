@@ -13,7 +13,11 @@ services:
       # Model weights persist here across container restarts instead of re-downloading.
       - hf-cache:/root/.cache/huggingface
     environment:
+      # The image is built lean (no torch), so it must run lexical retrieval. Switching this to
+      # "hybrid" requires an image built with `pip install '.[hybrid]'` and a host with ~6GB RAM.
+      - FUSION_RAG_RETRIEVAL_MODE=lexical
       - FUSION_RAG_CORS_ORIGINS=${CORS_ORIGINS}
+      # Required in lexical mode: it powers both the sufficiency gate and keyless generation.
       - FUSION_RAG_GEMINI_API_KEY=${GEMINI_API_KEY:-}
     expose:
       - "8000"

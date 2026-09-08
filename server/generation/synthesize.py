@@ -5,6 +5,8 @@ the returned text per CLAUDE.md's "Answer tiering" section. Neither key present 
 not a degraded answer — there is nothing to generate one with.
 """
 
+import re
+
 from config import AnswerTier, Sufficiency, settings
 from ingestion.chunk import Chunk
 
@@ -84,6 +86,35 @@ async def _synthesize_with_gemini(question: str, chunks: list[Chunk], tier: Answ
         "provided.\n\n"
     )
     return warning + (response.text or "")
+
+
+async def classify_sufficiency_remote(question: str, chunks: list[Chunk]) -> Sufficiency:
+    """The sufficiency gate for lexical retrieval mode, which loads no local model to ask.
+
+    Uses the same prompt as generation/local_llm.py's local classifier and the same fail-closed
+    behaviour — anything unparseable, or any error, becomes "insufficient", per CLAUDE.md's "an
+    answer that admits it's unverified beats a confident wrong one". With no Gemini key the
+    request fails at synthesis anyway, so returning "insufficient" here costs nothing.
+    """
+    from generation.local_llm import SUFFICIENCY_LABELS, build_sufficiency_prompt
+
+    if not chunks or not settings.gemini_api_key:
+        return "insufficient"
+    try:
+        from google import genai
+
+        client = genai.Client(api_key=settings.gemini_api_key)
+        response = await client.aio.models.generate_content(
+            model=settings.gemini_fallback_model,
+            contents=build_sufficiency_prompt(question, chunks),
+        )
+        raw = (response.text or "").lower()
+        for label in SUFFICIENCY_LABELS:
+            if re.search(rf"\b{label}\b", raw):
+                return label
+        return "insufficient"
+    except Exception:
+        return "insufficient"
 
 
 async def synthesize(

@@ -152,6 +152,23 @@ def _glossary_terms(question: str) -> str:
     return " ".join(seen)
 
 
+def expand_query_without_model(question: str) -> str:
+    """The same gating and glossary as `rewrite_query`, minus the model rewrite — pure string
+    matching, loads nothing.
+
+    Exists to measure whether the expansion win survives without a model at all. That matters for
+    hosting: the full stack needs ~5.5GB resident for bge-m3 + reranker + Qwen, which rules out
+    every free tier that doesn't want a credit card, while BM25 over SQLite FTS5 plus this
+    function fits in a couple hundred MB. Milestone 4 measured sparse-only at 0.910 recall@10
+    against the hybrid stack's 0.925 — if most of the expansion gain is glossary rather than
+    model, the cheap stack gets a lot more interesting.
+    """
+    if not _is_procedural(question):
+        return question
+    glossary = _glossary_terms(question)
+    return f"{question} {glossary}" if glossary else question
+
+
 def rewrite_query(question: str) -> str:
     """Expand only the questions that need it — a glossary match is the signal that the question
     is phrased in casual physical metaphor ("make it bounce") rather than the manual's own
@@ -197,7 +214,15 @@ Excerpts:
 
 Answer with exactly one word: sufficient, partial, or insufficient."""
 
-_SUFFICIENCY_LABELS: tuple[Sufficiency, ...] = ("sufficient", "partial", "insufficient")
+# Public: generation/synthesize.py's Gemini-backed gate (used in lexical retrieval mode) shares
+# both, so the two gates are the same question asked of a different model rather than two prompts
+# that can quietly drift apart.
+SUFFICIENCY_LABELS: tuple[Sufficiency, ...] = ("sufficient", "partial", "insufficient")
+
+
+def build_sufficiency_prompt(question: str, chunks: list[Chunk]) -> str:
+    excerpts = "\n\n".join(f"[{c.breadcrumb}] {c.text[:300]}" for c in chunks[:5])
+    return _SUFFICIENCY_PROMPT.format(question=question, excerpts=excerpts)
 
 
 def classify_sufficiency(question: str, chunks: list[Chunk]) -> Sufficiency:
@@ -206,10 +231,8 @@ def classify_sufficiency(question: str, chunks: list[Chunk]) -> Sufficiency:
     if not chunks:
         return "insufficient"
     try:
-        excerpts = "\n\n".join(f"[{c.breadcrumb}] {c.text[:300]}" for c in chunks[:5])
-        prompt = _SUFFICIENCY_PROMPT.format(question=question, excerpts=excerpts)
-        raw = _generate(prompt, max_new_tokens=8).lower()
-        for label in _SUFFICIENCY_LABELS:
+        raw = _generate(build_sufficiency_prompt(question, chunks), max_new_tokens=8).lower()
+        for label in SUFFICIENCY_LABELS:
             if re.search(rf"\b{label}\b", raw):
                 return label
         return "insufficient"
