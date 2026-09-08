@@ -136,13 +136,19 @@ async def classify_sufficiency_remote(question: str, chunks: list[Chunk]) -> Suf
         return _gate_unavailable(chunks)
 
     from google import genai
+    from google.genai import types
 
     client = genai.Client(api_key=settings.gemini_api_key)
     prompt = build_sufficiency_prompt(question, chunks)
+    # temperature=0 because this is a classifier, not a writer. Left at the default it sampled:
+    # the same question with the same eight chunks returned "partial" four times and
+    # "insufficient" once, so an answer's tier — and whether its citations were shown at all —
+    # came down to a coin flip between identical requests.
+    config = types.GenerateContentConfig(temperature=0)
     for attempt in range(2):
         try:
             response = await client.aio.models.generate_content(
-                model=settings.gemini_fallback_model, contents=prompt
+                model=settings.gemini_fallback_model, contents=prompt, config=config
             )
             raw = (response.text or "").lower()
             for label in SUFFICIENCY_LABELS:
