@@ -10,8 +10,12 @@ too old for this ML stack).
 
 ```bash
 python3.12 -m venv .venv
-./.venv/bin/pip install -e ".[dev]"
+./.venv/bin/pip install -e ".[hybrid,dev]"
 ```
+
+`[hybrid]` pulls torch, transformers and FlagEmbedding for the dense+rerank path. Omit it for the
+lean, model-free stack that actually gets deployed — that's what `pip install .` installs, and
+what keeps the deployed image in the hundreds of MB rather than several GB.
 
 Copy `.env.example` to `.env` if you need to override any setting in `config.py`.
 
@@ -19,39 +23,48 @@ Copy `.env.example` to `.env` if you need to override any setting in `config.py`
 
 - `config.py` — every setting lives here, nothing scattered
 - `ingestion/` — milestone 1: PDF -> pages (`parse.py`) -> chunks (`chunk.py`), CLI in `ingest.py`
-- `retrieval/` — milestone 3 (done): `store.py`'s `lexical_search`/`write_chunks_lexical_only`
-  (LanceDB native FTS, no embedding model), `build_index.py` CLI, `hybrid.py`'s
-  `lexical_baseline_retrieve`. Milestone 4 (not started): `embed.py`, `rerank.py`,
-  `store.py`'s `dense_search`/`sparse_search`/`write_chunks` (bge-m3 learned sparse — a
-  different mechanism from the lexical/FTS baseline, see the module docstring), and
-  `hybrid.py`'s dense+RRF+rerank `retrieve()`
-- `app/` — milestone 6: FastAPI app, request/response schemas, routers
+- `retrieval/` — both paths are built. Lexical: `store.py`'s
+  `lexical_search`/`write_chunks_lexical_only` (LanceDB native FTS, no embedding model) and
+  `hybrid.py`'s `lexical_baseline_retrieve`/`lexical_expanded_retrieve`. Hybrid: `embed.py`,
+  `rerank.py`, `store.py`'s `dense_search`/`sparse_search`/`write_chunks` (bge-m3 learned sparse —
+  a different mechanism from the lexical/FTS baseline, see the module docstring), and `hybrid.py`'s
+  dense+RRF+rerank. `retrieve()` dispatches between them on `config.retrieval_mode`; the
+  hybrid-only imports are lazy so the lean install never touches torch.
+- `generation/` — `local_llm.py` (Qwen2.5-0.5B query rewrite, the glossary, the local sufficiency
+  gate) and `synthesize.py` (BYOK Claude, Gemini fallback, tier prompts, the remote gate)
+- `app/` — FastAPI app, request/response schemas, routers
 - `eval/` — milestone 2 (done): `build_gold_set.py` generates `gold_set.jsonl` (72 Q/A pairs,
   grounded against real chunk_ids — regenerate after any ingestion change); `run_eval.py` has the
   `GoldExample` schema, recall@k/precision@k, and a real CLI that logs results to `eval/results/`
-- `data/` — gitignored. `raw/` holds the manual PDF, `parsed/` the JSONL output of ingestion,
-  `index/` the LanceDB files. Nothing under here is committed — the manual is copyrighted.
+- `data/` — `raw/` holds the manual PDF and `parsed/` the JSONL output of ingestion; both stay
+  untracked, being the most directly reproducible form of Blackmagic's copyrighted work.
+  `index/fusion_manual.lancedb` **is** tracked, decided deliberately: Render's filesystem is
+  ephemeral and deploys from git, so the service can't answer anything without it. See CLAUDE.md's
+  copyright note. `index/sparse_weights.json` stays untracked — 17MB only the hybrid path reads.
 
 ## Status
 
-**Milestones 1-3 are done.**
+**Milestones 1-7 are done and the service is deployed** (https://fusion-rag-api.onrender.com).
+Milestone 8, the Resolve-API validation loop, was always optional and isn't started. Current
+retrieval numbers and known issues live in the repo-root README; this section covers how to
+regenerate each artifact.
 - Milestone 1 (ingest + chunk): `ingestion/parse.py` and `ingestion/chunk.py` are real. Run
   `./.venv/bin/python -m ingestion.ingest` against `data/raw/DaVinci Resolve Manual.pdf`
   (Resolve 21, 4,444 pages) to regenerate `data/parsed/pages.jsonl` and
   `data/parsed/chunks.jsonl` — currently ~5,800 chunks.
 - Milestone 2 (gold eval set): `./.venv/bin/python -m eval.build_gold_set` regenerates
   `eval/gold_set.jsonl` from real chunk_ids (72 examples).
-- Milestone 3 (sparse-only baseline): `./.venv/bin/python -m retrieval.build_index` builds the
-  LanceDB FTS index, then `./.venv/bin/python -m eval.run_eval --run-name <name>` measures it.
-  Current numbers (`eval/results/sparse-baseline-v1.json`): **recall@10 = 0.955,
-  precision@5 = 0.352** across 67 scored examples (5 `out_of_scope` examples excluded — they
-  test the UNVERIFIED gate, not retrieval). Weakest category is `composed_animation`
-  (recall@10 = 0.846) — expected, since those questions ("squash and stretch", "offset one
-  layer from another") don't share vocabulary with the manual's actual wording. This is the
-  number milestone 4's dense+RRF+rerank needs to beat, not just match.
+- Milestones 3-4 (retrieval): `./.venv/bin/python -m retrieval.build_index` builds the LanceDB
+  index, then `./.venv/bin/python -m eval.run_eval --run-name <name> --retriever <r>` measures it.
+  Retrievers: `lexical-baseline`, `lexical-expanded`, `hybrid-candidates`, `hybrid-reranked`.
+  Results land in `eval/results/`; the comparison table is in the repo-root README.
 
-`retrieval/embed.py`, `rerank.py`, and `store.py`'s dense/bge-m3-sparse paths (milestone 4) are
-still stubs. `app/main.py` and the `/health`, `/query` routes are real and runnable:
+  Note the eval numbers in `*-v1.json` predate a gold-set fix and are **not** comparable to later
+  runs — `build_gold_set.py` used to collapse every source chunk into one `[min_page, max_page]`
+  span, so a question grounded in two distant sections scored a hit anywhere in a ~1,300-page
+  window. Compare v2 and later only.
+
+`app/main.py` and the `/health`, `/query` routes are runnable locally:
 
 ```bash
 ./.venv/bin/uvicorn app.main:app --reload --port 8000
