@@ -50,7 +50,7 @@ class Settings(BaseSettings):
 
     # Generation — BYOK, session-only key, never persisted (see conventions)
     anthropic_model: str = "claude-sonnet-5"
-    gemini_fallback_model: str = "gemini-2.0-flash"
+    gemini_fallback_model: str = "gemini-3.6-flash"
     # Query expansion + sufficiency gate — no API key required, small enough to sit alongside
     # bge-m3 + the reranker in memory (see the milestone-4 memory notes: shrink models before
     # tuning RAM further).

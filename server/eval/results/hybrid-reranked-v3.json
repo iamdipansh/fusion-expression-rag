@@ -1,0 +1,570 @@
+{
+  "run_name": "hybrid-reranked-v3",
+  "retriever": "hybrid-reranked",
+  "timestamp": "2026-09-08T09:00:25.544180+00:00",
+  "n_gold_examples": 72,
+  "n_scored": 67,
+  "n_skipped_out_of_scope": 5,
+  "mean_recall@10": 0.6268656716417911,
+  "mean_precision@5": 0.29850746268656714,
+  "by_category": {
+    "parameter_lookup": {
+      "n": 20,
+      "recall@10": 0.35,
+      "precision@5": 0.1
+    },
+    "node_lookup": {
+      "n": 14,
+      "recall@10": 0.35714285714285715,
+      "precision@5": 0.15714285714285717
+    },
+    "expression_syntax": {
+      "n": 20,
+      "recall@10": 0.9,
+      "precision@5": 0.49000000000000005
+    },
+    "composed_animation": {
+      "n": 13,
+      "recall@10": 0.9230769230769231,
+      "precision@5": 0.46153846153846156
+    }
+  },
+  "per_example": [
+    {
+      "id": 1,
+      "category": "parameter_lookup",
+      "question": "What are the exact names of the Transform node's two inputs?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Page Effects > Color Nodes > ColorFX > ACESTransform [ATr]"
+    },
+    {
+      "id": 2,
+      "category": "parameter_lookup",
+      "question": "What is the default value of the Transform node's Center parameter?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using the Tracker Node > Connecting to Trackers\u2019 Operations > Steady Position"
+    },
+    {
+      "id": 3,
+      "category": "parameter_lookup",
+      "question": "What does the Transform node's Pivot parameter control, and what's its default?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Page Effects > 3D Nodes > Transform 3D [3XF]"
+    },
+    {
+      "id": 4,
+      "category": "parameter_lookup",
+      "question": "On the Transform node, what's the difference in behavior between Size when 'Use Size and Aspect' is on vs. off?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 5,
+      "category": "parameter_lookup",
+      "question": "In the Transform node, which rotation direction does increasing the Angle value produce?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 6,
+      "category": "parameter_lookup",
+      "question": "What are the four options on the Transform node's Edges menu, and what does each do?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 7,
+      "category": "parameter_lookup",
+      "question": "What does 'Flatten Transform' do on the Transform node?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 8,
+      "category": "parameter_lookup",
+      "question": "On the Merge node, what does the 'Center X and Y' control under Foreground Sizing actually control, and what's its default?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 9,
+      "category": "parameter_lookup",
+      "question": "Which input on the Merge node determines the resolution of the output image?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Controlling Image Processing and Resolution > Managing Resolution In Fusion > Compositing with Different-Resolution Clips"
+    },
+    {
+      "id": 10,
+      "category": "parameter_lookup",
+      "question": "On the Merge node, what value of the Size control (under Foreground Sizing) gives a pixel-for-pixel composite?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 11,
+      "category": "parameter_lookup",
+      "question": "What are the six options on the Background node's Gradient Type menu?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Page Effects > Generator Nodes > Text+ [TXT+] > On-screen Controls"
+    },
+    {
+      "id": 12,
+      "category": "parameter_lookup",
+      "question": "What are the three options on the Background node's gradient Repeat menu, and what does each do?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 13,
+      "category": "parameter_lookup",
+      "question": "What are the three Frequency Method options on the Camera Shake node, and how does Square Wave differ from Sine?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 14,
+      "category": "parameter_lookup",
+      "question": "What value range is permitted for the Camera Shake node's Deviation X and Y controls, and what does a value of 1.0 mean?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 15,
+      "category": "parameter_lookup",
+      "question": "What are the four Type options on the Directional Blur node?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 16,
+      "category": "parameter_lookup",
+      "question": "On the Directional Blur node, what happens if you set the Length control to a value below zero?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 17,
+      "category": "parameter_lookup",
+      "question": "What are the three Clipping Mode options on the Directional Blur node, and which is the default?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Page Effects > Effect Nodes > Trails [TRLS]"
+    },
+    {
+      "id": 18,
+      "category": "parameter_lookup",
+      "question": "On the sEllipse shape node, when is the Position parameter displayed, and what does it do together with Length?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Page Effects > Shape Nodes > sEllipse"
+    },
+    {
+      "id": 19,
+      "category": "parameter_lookup",
+      "question": "What does the Shake modifier's Smoothness control do, and what happens at a value of zero?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 20,
+      "category": "parameter_lookup",
+      "question": "What noise algorithm does the Perturb modifier use to generate its random values?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 21,
+      "category": "node_lookup",
+      "question": "Which Fusion node combines two images based on the foreground's Alpha channel?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Page Effects > Composite Nodes > Merge [Mrg]"
+    },
+    {
+      "id": 22,
+      "category": "node_lookup",
+      "question": "Which Fusion node produces gradient or solid-color backgrounds?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 23,
+      "category": "node_lookup",
+      "question": "Which Fusion node simulates camera shake motion, and how is it different from the Shake modifier?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 24,
+      "category": "node_lookup",
+      "question": "Which node would you use to apply perspective distortion from Planar Tracker data onto a mask or image?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 25,
+      "category": "node_lookup",
+      "question": "Which Fusion node generates rectangular shapes, and what node do you need to actually view its output?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 26,
+      "category": "node_lookup",
+      "question": "Which node generates circular/elliptical shapes in Fusion?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 27,
+      "category": "node_lookup",
+      "question": "What's the difference between the Resize node and the Scale node?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Page Effects > Transform Nodes > Scale [SCL]"
+    },
+    {
+      "id": 28,
+      "category": "node_lookup",
+      "question": "Which modifier lets you link two non-animated parameters together without keyframing either one directly?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 29,
+      "category": "node_lookup",
+      "question": "Which modifier creates an indirect link between two parameters using a mathematical expression?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Fundamentals > Editing Parameters in the Inspector > Connecting Parameters > Connecting Parameters by Pick Whipping"
+    },
+    {
+      "id": 30,
+      "category": "node_lookup",
+      "question": "What are the node abbreviations for the Blur-category nodes in Fusion, and which one is for simulating an out-of-focus lens rather than a directional/motion blur?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 31,
+      "category": "node_lookup",
+      "question": "Which node lets you alternate between multiple input sources, selecting one output from several choices?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 32,
+      "category": "node_lookup",
+      "question": "Which modifier is described as 'one of the most versatile modifiers in Fusion,' letting you control a numeric parameter from the color or luminosity of a pixel region in an image?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 33,
+      "category": "node_lookup",
+      "question": "Besides the standalone Tracker node, is there a way to attach tracking directly to a single parameter without using a full Tracker node?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 34,
+      "category": "node_lookup",
+      "question": "Which node type applies color-space conversions using the OCIO (OpenColorIO) system, and what are its two inputs?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Page Effects > Color Nodes > Color > OCIO Color Space [OCS]"
+    },
+    {
+      "id": 35,
+      "category": "expression_syntax",
+      "question": "How do you open a SimpleExpression field on a parameter in the Inspector?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions > Pick Whipping to Create an Expression"
+    },
+    {
+      "id": 36,
+      "category": "expression_syntax",
+      "question": "What does the SimpleExpression `sin(time/20)/2+.5` evaluate to?",
+      "recall@10": 1.0,
+      "precision@5": 0.8,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 37,
+      "category": "expression_syntax",
+      "question": "What does `iif(Merge1.Blend == 0, 0, 1)` do, and what is `iif` short for?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 38,
+      "category": "expression_syntax",
+      "question": "In a SimpleExpression, what does writing just `Input` (with no node name) refer to?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 39,
+      "category": "expression_syntax",
+      "question": "Why does `Point(Text1.Center.X, Text1.Center.Y-.1)` need to be wrapped in `Point(...)` instead of just written as a formula?",
+      "recall@10": 1.0,
+      "precision@5": 0.8,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 40,
+      "category": "expression_syntax",
+      "question": "How do you concatenate strings in a Fusion SimpleExpression?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 41,
+      "category": "expression_syntax",
+      "question": "What does `Merge1:GetValue(\"Blend\", time-5)` do differently from just writing `Merge1.Blend`?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 42,
+      "category": "expression_syntax",
+      "question": "How do you insert a newline inside a Text() SimpleExpression?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 43,
+      "category": "expression_syntax",
+      "question": "How can a SimpleExpression read an environment variable, and what function is used?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 44,
+      "category": "expression_syntax",
+      "question": "What does the `comp` variable give a SimpleExpression access to?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 45,
+      "category": "expression_syntax",
+      "question": "What is 'pick whipping' in Fusion, and how do you do it?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 46,
+      "category": "expression_syntax",
+      "question": "Besides the Inspector, where else can you create or edit a SimpleExpression?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 47,
+      "category": "expression_syntax",
+      "question": "How do you remove a SimpleExpression from a parameter?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions > Removing SimpleExpressions"
+    },
+    {
+      "id": 48,
+      "category": "expression_syntax",
+      "question": "In the manual's DirectionalBlur example, what's the exact SimpleExpression used to drive the Length parameter from the node's Center onscreen control?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 49,
+      "category": "expression_syntax",
+      "question": "In that same DirectionalBlur example, what's the Angle SimpleExpression, and why is the result multiplied by 180/pi?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Customizing User Controls"
+    },
+    {
+      "id": 50,
+      "category": "expression_syntax",
+      "question": "What does `iif(TypeNew==0, 0, 2)` do in the custom-checkbox Edit Controls example?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 51,
+      "category": "expression_syntax",
+      "question": "What's the difference between the Expression modifier and a plain SimpleExpression?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using Modifiers > Adding and Inserting Multiple Modifiers"
+    },
+    {
+      "id": 52,
+      "category": "expression_syntax",
+      "question": "Can you perform a calculation directly in a numeric field without opening a full SimpleExpression? Give an example.",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 53,
+      "category": "expression_syntax",
+      "question": "What are the three mechanisms Fusion provides for going beyond its standard keyframed tools, per the manual's own introduction to this topic?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 54,
+      "category": "expression_syntax",
+      "question": "How do you add a modifier to a parameter in the Inspector?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 55,
+      "category": "composed_animation",
+      "question": "How do I make a layer bounce like a rubber ball hitting the ground, using a Fusion expression?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 56,
+      "category": "composed_animation",
+      "question": "How do I add a spring-like overshoot to a keyframed move in Fusion?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 57,
+      "category": "composed_animation",
+      "question": "How do I add a subtle wiggle to a Text+ layer's position?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 58,
+      "category": "composed_animation",
+      "question": "How do I make an object squash and stretch as it bounces, using the Transform node?",
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 59,
+      "category": "composed_animation",
+      "question": "How do I ease a keyframed animation smoothly in and out instead of linearly, without writing an expression?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 60,
+      "category": "composed_animation",
+      "question": "Write a Fusion SimpleExpression for an ease-in-out cubic curve between two values over a fixed duration.",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Animating in Fusion\u2019s Spline Editor > Reshaping Splines Using the Toolbar > Interpolation"
+    },
+    {
+      "id": 61,
+      "category": "composed_animation",
+      "question": "How do I make an object rotate continuously and indefinitely using an expression, rather than keyframing rotation?",
+      "recall@10": 1.0,
+      "precision@5": 0.8,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 62,
+      "category": "composed_animation",
+      "question": "How do I pulse a parameter's value back and forth between two numbers repeatedly?",
+      "recall@10": 1.0,
+      "precision@5": 0.8,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 63,
+      "category": "composed_animation",
+      "question": "How do I create a damped oscillation that settles to a resting value over time, using SimpleExpressions?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 64,
+      "category": "composed_animation",
+      "question": "How do I offset one layer's position from another's by a fixed amount, so it follows with a consistent spacing?",
+      "recall@10": 1.0,
+      "precision@5": 0.8,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 65,
+      "category": "composed_animation",
+      "question": "How do I control a Directional Blur's length and angle from a single onscreen point instead of two separate sliders?",
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 66,
+      "category": "composed_animation",
+      "question": "How do I create an elastic 'overshoot' pop-in entrance animation for a Transform's Size parameter, similar to CSS's easeOutBack?",
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    },
+    {
+      "id": 67,
+      "category": "composed_animation",
+      "question": "Does Fusion have a one-click, built-in spring-physics simulator for animating a parameter, separate from writing an expression?",
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "top1_breadcrumb": "Fusion Fundamentals > Using Modifiers, Expressions, and Custom Controls > Using SimpleExpressions"
+    }
+  ]
+}

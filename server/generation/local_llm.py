@@ -59,26 +59,131 @@ def _generate(prompt: str, max_new_tokens: int) -> str:
     return str(tokenizer.decode(generated, skip_special_tokens=True)).strip()
 
 
-_REWRITE_PROMPT = """Rewrite the following user question using the exact terminology of \
-DaVinci Resolve's Fusion manual: node names (Transform, Merge, Background, Custom Tool), \
-parameter names, and expression-scripting terms (SimpleExpression, time, iif, GetValue). \
-Output only the rewritten question on one line, nothing else.
+# Zero-shot instructions don't get vocabulary translation out of a 0.5B model — it paraphrases
+# instead ("how do I make a layer bounce like a rubber ball" -> "How can I create a layer that
+# bounces like a rubber ball in DaVinci Resolve?", which retrieves nothing useful). The examples
+# below carry the target vocabulary themselves, which is what a model this size can actually copy.
+_REWRITE_PROMPT = """You translate a user's question into the vocabulary of DaVinci Resolve's \
+Fusion manual so it can be matched against the manual's text. The manual documents primitives — \
+the `time` variable, sin/cos/iif functions, SimpleExpressions, modifiers, and per-node parameter \
+tables. It never uses casual wording like "bounce" or "wiggle". Replace casual wording with the \
+manual's terms. Output only the rewritten query, on one line.
+
+Question: how do I make something bounce
+Rewritten: SimpleExpression driving a parameter from the time variable using sin and cos for \
+decaying oscillation
+
+Question: add a wiggle to my text
+Rewritten: Perturb modifier applied to a Text+ node's Center parameter for random noise animation
 
 Question: {question}
 Rewritten:"""
 
+# Deterministic vocabulary for the handful of concepts this tool exists to serve (CLAUDE.md names
+# spring, bounce, squash-and-stretch by name). The manual never uses these words, so a query
+# containing them has near-zero lexical overlap with the corpus — measured: the correct chunk for
+# a bounce question scored -6.81 on the raw phrasing versus +0.85 once the query carried this
+# vocabulary instead. Terms are drawn only from what's verified in the fusion-expressions skill's
+# references/node-inputs.md and math-patterns.md — never invent an input name here.
+_CONCEPT_VOCABULARY: tuple[tuple[tuple[str, ...], str], ...] = (
+    (
+        ("bounce", "bouncing", "rubber ball", "dropped"),
+        "SimpleExpression time variable sin cos abs decaying oscillation Transform Center",
+    ),
+    (
+        ("spring", "springy", "overshoot", "settle", "follow-through"),
+        "SimpleExpression time variable damped oscillator exp cos decay Transform Center",
+    ),
+    (
+        ("wiggle", "jitter", "shake", "handheld", "random"),
+        "Perturb modifier Modify With noise SimpleExpression time Center",
+    ),
+    (
+        ("ease", "easing", "smooth", "interpolation"),
+        "SimpleExpression iif normalized time Spline Editor interpolation Smooth keyframe",
+    ),
+    (
+        ("squash", "stretch"),
+        "Transform node Size Aspect Use Size and Aspect XScale YScale SimpleExpression sqrt",
+    ),
+    (
+        ("rotate", "rotating", "spin", "spinning"),
+        "Transform node Angle SimpleExpression time degrees",
+    ),
+)
+
+
+# Expansion helps procedural requests ("how do I make it bounce") and hurts factual lookups
+# ("what are the three options on the Background node's Repeat menu"), which the manual answers
+# verbatim and where an exact query is already optimal. That split is what the v3 eval measured:
+# composed_animation — almost entirely procedural — rose 0.615 -> 0.923, while node_lookup and
+# parameter_lookup collapsed to ~0.35. A glossary hit alone doesn't separate them, since lookup
+# questions legitimately contain words like "shake" and "noise"; the question's grammatical form
+# does.
+_PROCEDURAL_OPENERS: tuple[str, ...] = (
+    "how do i",
+    "how do you",
+    "how can i",
+    "how would i",
+    "how to",
+    "write a",
+    "write an",
+    "make ",
+    "add ",
+    "create ",
+    "animate ",
+    "drive ",
+)
+
+
+def _is_procedural(question: str) -> bool:
+    lowered = question.strip().lower()
+    return lowered.startswith(_PROCEDURAL_OPENERS)
+
+
+def _glossary_terms(question: str) -> str:
+    """Manual vocabulary for every concept the question mentions, deduplicated in order."""
+    lowered = question.lower()
+    seen: dict[str, None] = {}
+    for triggers, vocabulary in _CONCEPT_VOCABULARY:
+        if any(trigger in lowered for trigger in triggers):
+            for term in vocabulary.split():
+                seen.setdefault(term, None)
+    return " ".join(seen)
+
 
 def rewrite_query(question: str) -> str:
-    """Best-effort query expansion — falls back to the original question on any failure, since
-    this is an optimization the retrieval pipeline shouldn't hard-depend on."""
+    """Expand only the questions that need it — a glossary match is the signal that the question
+    is phrased in casual physical metaphor ("make it bounce") rather than the manual's own
+    vocabulary, and so has little lexical overlap with the corpus.
+
+    Expanding unconditionally measurably backfires. Run hybrid-reranked-v3 (expand everything)
+    against v2 (expand nothing): composed_animation recall@10 rose 0.615 -> 0.923, but
+    node_lookup fell 1.000 -> 0.357 and parameter_lookup 1.000 -> 0.350, dropping overall
+    recall@10 from 0.925 to 0.627. Lookup questions ("what are the exact names of the Transform
+    node's two inputs?") already use manual vocabulary, so paraphrasing them through a 0.5B model
+    and appending glossary terms only corrupts an already-optimal query. No match here means the
+    question passes through untouched, byte-identical to the v2 behaviour those scores came from.
+    """
+    if not _is_procedural(question):
+        return question
+    glossary = _glossary_terms(question)
+    if not glossary:
+        return question
     try:
         rewritten = _generate(_REWRITE_PROMPT.format(question=question), max_new_tokens=64)
         rewritten = rewritten.splitlines()[0].strip() if rewritten else ""
-        return rewritten if rewritten else question
+        rewritten = rewritten if rewritten else question
     except Exception:
-        return question
+        rewritten = question
+    return f"{rewritten} {glossary}"
 
 
+# Kept deliberately close to the plain original wording. Two attempts at tightening this to stop
+# it over-claiming "sufficient" both backfired — a 0.5B model swings hard on small prompt edits,
+# and it started calling genuinely-relevant primitives "insufficient". The over-claiming it was
+# meant to patch turned out to be caused by garbage retrieval upstream (see _CONCEPT_VOCABULARY),
+# not by this prompt. Fix the input, not the judge.
 _SUFFICIENCY_PROMPT = """A user asked a question about DaVinci Resolve's Fusion page. Below are \
 manual excerpts retrieved for it. Classify how well they answer the question:
 - sufficient: the excerpts directly answer the question
