@@ -5,10 +5,13 @@ the returned text per CLAUDE.md's "Answer tiering" section. Neither key present 
 not a degraded answer — there is nothing to generate one with.
 """
 
+import logging
 import re
 
 from config import AnswerTier, Sufficiency, settings
 from ingestion.chunk import Chunk
+
+logger = logging.getLogger(__name__)
 
 TIER_FOR_SUFFICIENCY: dict[Sufficiency, AnswerTier] = {
     "sufficient": "GROUNDED",
@@ -98,7 +101,10 @@ async def classify_sufficiency_remote(question: str, chunks: list[Chunk]) -> Suf
     """
     from generation.local_llm import SUFFICIENCY_LABELS, build_sufficiency_prompt
 
-    if not chunks or not settings.gemini_api_key:
+    if not chunks:
+        return "insufficient"
+    if not settings.gemini_api_key:
+        logger.warning("sufficiency gate: no Gemini key configured, failing closed")
         return "insufficient"
     try:
         from google import genai
@@ -112,8 +118,13 @@ async def classify_sufficiency_remote(question: str, chunks: list[Chunk]) -> Suf
         for label in SUFFICIENCY_LABELS:
             if re.search(rf"\b{label}\b", raw):
                 return label
+        # Still fail closed, but say so — a gate that silently answers "insufficient" for an
+        # unrelated reason looks identical to one correctly rejecting bad retrieval, which is
+        # exactly how a deploy shipped answering UNVERIFIED for everything.
+        logger.warning("sufficiency gate: unparseable reply %r, failing closed", raw[:120])
         return "insufficient"
     except Exception:
+        logger.exception("sufficiency gate: Gemini call failed, failing closed")
         return "insufficient"
 
 
