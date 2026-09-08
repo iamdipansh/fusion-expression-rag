@@ -5,6 +5,7 @@ the returned text per CLAUDE.md's "Answer tiering" section. Neither key present 
 not a degraded answer — there is nothing to generate one with.
 """
 
+import asyncio
 import logging
 import re
 
@@ -91,41 +92,66 @@ async def _synthesize_with_gemini(question: str, chunks: list[Chunk], tier: Answ
     return warning + (response.text or "")
 
 
+def _gate_unavailable(chunks: list[Chunk]) -> Sufficiency:
+    """What to answer when the gate couldn't reach a judgement at all.
+
+    Not "insufficient". That word means "the excerpts are not relevant", and a rate-limited or
+    erroring API call establishes nothing of the sort. Answering it anyway was actively
+    misleading: UNVERIFIED drops the citations, while `synthesize` still receives the chunks and
+    grounds the answer in them — so the deployed app was returning manual-grounded answers while
+    telling the reader nothing relevant had been found and hiding the pages it used.
+
+    With chunks in hand, "partial" is the honest reading: the manual supplied something, and
+    SYNTHESIZED already instructs the model to mark what it composed versus what it cited. It
+    keeps the provenance visible without claiming the stronger GROUNDED. With no chunks there is
+    genuinely nothing, and "insufficient" is correct.
+    """
+    return "partial" if chunks else "insufficient"
+
+
 async def classify_sufficiency_remote(question: str, chunks: list[Chunk]) -> Sufficiency:
     """The sufficiency gate for lexical retrieval mode, which loads no local model to ask.
 
-    Uses the same prompt as generation/local_llm.py's local classifier and the same fail-closed
-    behaviour — anything unparseable, or any error, becomes "insufficient", per CLAUDE.md's "an
-    answer that admits it's unverified beats a confident wrong one". With no Gemini key the
-    request fails at synthesis anyway, so returning "insufficient" here costs nothing.
+    Uses the same prompt as generation/local_llm.py's local classifier, so the two gates ask one
+    question of different models rather than drifting apart.
+
+    A judgement of "insufficient" is only ever returned when the model actually says so, or when
+    there is nothing to judge. Everything else — rate limits, errors, unparseable replies — goes
+    through `_gate_unavailable`, which explains why that distinction matters.
     """
     from generation.local_llm import SUFFICIENCY_LABELS, build_sufficiency_prompt
 
     if not chunks:
         return "insufficient"
     if not settings.gemini_api_key:
-        logger.warning("sufficiency gate: no Gemini key configured, failing closed")
-        return "insufficient"
-    try:
-        from google import genai
+        logger.warning("sufficiency gate: no Gemini key configured")
+        return _gate_unavailable(chunks)
 
-        client = genai.Client(api_key=settings.gemini_api_key)
-        response = await client.aio.models.generate_content(
-            model=settings.gemini_fallback_model,
-            contents=build_sufficiency_prompt(question, chunks),
-        )
-        raw = (response.text or "").lower()
-        for label in SUFFICIENCY_LABELS:
-            if re.search(rf"\b{label}\b", raw):
-                return label
-        # Still fail closed, but say so — a gate that silently answers "insufficient" for an
-        # unrelated reason looks identical to one correctly rejecting bad retrieval, which is
-        # exactly how a deploy shipped answering UNVERIFIED for everything.
-        logger.warning("sufficiency gate: unparseable reply %r, failing closed", raw[:120])
-        return "insufficient"
-    except Exception:
-        logger.exception("sufficiency gate: Gemini call failed, failing closed")
-        return "insufficient"
+    from google import genai
+
+    client = genai.Client(api_key=settings.gemini_api_key)
+    prompt = build_sufficiency_prompt(question, chunks)
+    for attempt in range(2):
+        try:
+            response = await client.aio.models.generate_content(
+                model=settings.gemini_fallback_model, contents=prompt
+            )
+            raw = (response.text or "").lower()
+            for label in SUFFICIENCY_LABELS:
+                if re.search(rf"\b{label}\b", raw):
+                    return label
+            logger.warning("sufficiency gate: unparseable reply %r", raw[:120])
+            return _gate_unavailable(chunks)
+        except Exception:
+            # The free tier's per-minute limit is easy to trip at two calls per question, and it
+            # clears in seconds — so one short retry is worth it before giving up.
+            if attempt == 0:
+                logger.warning("sufficiency gate: call failed, retrying once")
+                await asyncio.sleep(3)
+                continue
+            logger.exception("sufficiency gate: call failed twice")
+            return _gate_unavailable(chunks)
+    return _gate_unavailable(chunks)
 
 
 async def synthesize(
