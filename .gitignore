@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+
+# Eval checkpoints are resumable, per-run scratch state — the final results in eval/results/
+# are what gets logged and compared, not these.
+eval/results/*.checkpoint.jsonl
+
+# Large local artifacts — never committed. The manual is copyrighted; the index and
+# parsed text are derived from it and stay local (see "Copyright posture" in CLAUDE.md).
+data/raw/*
+data/parsed/*
+data/index/*
+!data/raw/.gitkeep
+!data/parsed/.gitkeep
+!data/index/.gitkeep
