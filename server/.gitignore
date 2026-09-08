@@ -6,16 +6,28 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 *.egg-info/
+build/
 
 # Eval checkpoints are resumable, per-run scratch state — the final results in eval/results/
 # are what gets logged and compared, not these.
 eval/results/*.checkpoint.jsonl
 
-# Large local artifacts — never committed. The manual is copyrighted; the index and
-# parsed text are derived from it and stay local (see "Copyright posture" in CLAUDE.md).
+# The manual PDF and the parsed page/chunk text stay local — they're the most directly
+# reproducible form of Blackmagic's copyrighted work and nothing needs them at serve time.
 data/raw/*
 data/parsed/*
 data/index/*
 !data/raw/.gitkeep
 !data/parsed/.gitkeep
 !data/index/.gitkeep
+
+# Exception, decided deliberately (see "Copyright posture" in CLAUDE.md): the LanceDB table is
+# tracked, because hosting is impossible without it. Render's free tier has an ephemeral
+# filesystem and deploys from git, so the index has to live in the repo for the service to answer
+# anything at all. The repo is private, and what the deployed app serves publicly is unchanged —
+# composed answers with page-number pointers, not the manual's text.
+!data/index/fusion_manual.lancedb/
+
+# Still excluded: bge-m3's sparse weights are 17MB and only the hybrid path reads them, so the
+# lexical deployment has no use for them.
+data/index/sparse_weights.json

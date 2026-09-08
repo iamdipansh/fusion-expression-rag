@@ -27,8 +27,21 @@ A retrieval system over the **DaVinci Resolve reference manual** (~4,000 pages, 
 1. ~~**Manual version**~~ — **Resolved: Resolve 21.** PDF lives at
    `server/data/raw/DaVinci Resolve Manual.pdf` (4,444 pages, confirmed via PDF metadata + cover
    page). `config.py`'s `manual_version` and `manual_pdf_path` are set accordingly.
-2. **Copyright posture.** The manual is Blackmagic's copyrighted work; a public site serving its text back is redistribution. Public-safe design: Claude-composed answers, citations as *page-number pointers* into the official PDF rather than reproduced text, quotes held to a sentence or two. Settle before milestone 5.
-3. **Host.** See Hosting below — free-tier terms need verifying against the actual account.
+2. ~~**Copyright posture.**~~ — **Resolved.** What the app *serves* is unchanged and unchanged in
+   spirit: Claude-composed answers, citations as *page-number pointers* into the official PDF
+   rather than reproduced text, quotes held to a sentence or two. What changed is where the index
+   may live. Hosting is impossible with the index confined to one laptop — Render's free tier has
+   an ephemeral filesystem and deploys from git — so `data/index/fusion_manual.lancedb` (~36MB,
+   including the chunk text BM25 searches) is now **tracked in the private repo**. The manual PDF
+   and `data/parsed/` stay untracked: they're the most directly reproducible form of the work and
+   nothing needs them at serve time. `sparse_weights.json` stays untracked too, being 17MB the
+   lexical path never reads.
+3. ~~**Host.**~~ — **Resolved: Render free tier** for the backend, Vercel for the frontend.
+   512MB RAM, 0.1 CPU, no credit card, spins down after 15 idle minutes with a ~1 minute cold
+   start. Oracle's Always Free VM was the original plan but its signup requires a card. The
+   512MB ceiling is why the backend runs `retrieval_mode=lexical` (see `config.py`) — the hybrid
+   stack needs ~6GB. Hugging Face Spaces was ruled out: its own docs say Docker/Gradio Spaces
+   "require a paid plan to create", and only Static Spaces are free.
 
 ---
 

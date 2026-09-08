@@ -1,0 +1,30 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploys the backend only. The frontend goes to Vercel (see deploy/README.md).
+#
+# Uses Render's native Python runtime rather than server/Dockerfile: `pip install .` already
+# resolves to the lean dependency set (torch and friends live in the `hybrid` extra), and native
+# builds are considerably faster than image builds on a 0.1-CPU free instance.
+services:
+  - type: web
+    name: fusion-rag-api
+    runtime: python
+    plan: free
+    rootDir: server
+    buildCommand: pip install .
+    # Render assigns the port via $PORT; binding anything else makes the service unreachable.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # The free instance has 512MB; the hybrid stack needs ~6GB, so lexical is not optional here.
+      - key: FUSION_RAG_RETRIEVAL_MODE
+        value: lexical
+      # Powers both the sufficiency gate and keyless generation in lexical mode. Set the actual
+      # value in the Render dashboard — sync:false keeps the secret out of this file and out of git.
+      - key: FUSION_RAG_GEMINI_API_KEY
+        sync: false
+      # Replace with the real Vercel URL once the frontend is deployed, then redeploy. JSON array,
+      # not comma-separated — pydantic-settings parses list fields as JSON.
+      - key: FUSION_RAG_CORS_ORIGINS
+        value: '["http://localhost:3000"]'
