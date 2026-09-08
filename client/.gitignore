@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env*.example
+# Tracked deliberately: it holds only the public backend URL, no secret. Committing it means a
+# Vercel import needs no environment configuration at all.
+!.env.production
 
 # vercel
 .vercel

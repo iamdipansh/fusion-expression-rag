@@ -78,6 +78,10 @@ class Settings(BaseSettings):
 
     # API
     cors_origins: list[str] = ["http://localhost:3000"]
+    # Vercel mints a fresh hostname for every preview deploy, so an exact-match origin list blocks
+    # all of them. Scoped to this project's own subdomains rather than all of *.vercel.app —
+    # a wildcard there would let any site on Vercel spend this backend's Gemini free-tier quota.
+    cors_origin_regex: str | None = None
     host: str = "0.0.0.0"
     port: int = 8000
 

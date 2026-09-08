@@ -24,7 +24,11 @@ services:
       # value in the Render dashboard — sync:false keeps the secret out of this file and out of git.
       - key: FUSION_RAG_GEMINI_API_KEY
         sync: false
-      # Replace with the real Vercel URL once the frontend is deployed, then redeploy. JSON array,
-      # not comma-separated — pydantic-settings parses list fields as JSON.
+      # JSON array, not comma-separated — pydantic-settings parses list fields as JSON.
       - key: FUSION_RAG_CORS_ORIGINS
         value: '["http://localhost:3000"]'
+      # Covers the Vercel production domain and every preview deploy, which each get their own
+      # hostname. Scoped to this project's subdomains rather than all of *.vercel.app, so another
+      # site on Vercel can't spend this backend's Gemini quota. Widen if the project is renamed.
+      - key: FUSION_RAG_CORS_ORIGIN_REGEX
+        value: '^https://fusion-(expression-)?rag[a-z0-9-]*\.vercel\.app$'
