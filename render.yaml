@@ -27,8 +27,10 @@ services:
       # JSON array, not comma-separated — pydantic-settings parses list fields as JSON.
       - key: FUSION_RAG_CORS_ORIGINS
         value: '["http://localhost:3000"]'
-      # Covers the Vercel production domain and every preview deploy, which each get their own
-      # hostname. Scoped to this project's subdomains rather than all of *.vercel.app, so another
-      # site on Vercel can't spend this backend's Gemini quota. Widen if the project is renamed.
+      # Scoped to this Vercel account's subdomains: every deployment it produces ends in
+      # -iamdipanshs-projects.vercel.app, covering the production alias
+      # (client-iamdipanshs-projects.vercel.app), each preview's hashed hostname, and any later
+      # project rename. Deliberately not all of *.vercel.app — that would let any site hosted
+      # there spend this backend's Gemini free-tier quota.
       - key: FUSION_RAG_CORS_ORIGIN_REGEX
-        value: '^https://fusion-(expression-)?rag[a-z0-9-]*\.vercel\.app$'
+        value: '^https://[a-z0-9-]+-iamdipanshs-projects\.vercel\.app$'
