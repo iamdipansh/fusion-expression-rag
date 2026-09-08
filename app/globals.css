@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
+/* Deliberately, permanently dark — this tool lives alongside grading/compositing software its
+   audience already uses all day, not a togglable "dark mode". Canvas carries a real cool
+   green-black cast (not a flat #0b0b0b/#111) evoking a calibrated reference monitor, and the
+   three signal colors below are drawn from broadcast scope traces (cyan/amber/red), not generic
+   traffic-light semantics — see the milestone-6 tier badge for where that matters. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #0b1210;
+  --surface: #131c1a;
+  --surface-raised: #182220;
+  --line: #263330;
+  --ink: #e8eeec;
+  --ink-dim: #8fa39d;
+  --ink-faint: #56635f;
+
+  --signal-grounded: #5fd3c4;
+  --signal-grounded-dim: #2e4643;
+  --signal-synthesized: #e8a33d;
+  --signal-synthesized-dim: #4a3c22;
+  --signal-unverified: #e8615d;
+  --signal-unverified-dim: #4a2a29;
+
+  --font-ui: var(--font-instrument-sans);
+  --font-code: var(--font-plex-mono);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-ink-faint: var(--ink-faint);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-grounded: var(--signal-grounded);
+  --color-grounded-dim: var(--signal-grounded-dim);
+  --color-synthesized: var(--signal-synthesized);
+  --color-synthesized-dim: var(--signal-synthesized-dim);
+  --color-unverified: var(--signal-unverified);
+  --color-unverified-dim: var(--signal-unverified-dim);
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--signal-grounded-dim);
+  color: var(--ink);
+}
+
+/* Visible keyboard focus everywhere, styled to match the signal system rather than the
+   browser default blue ring. */
+:focus-visible {
+  outline: 2px solid var(--signal-grounded);
+  outline-offset: 2px;
+}
+
+@keyframes draw-curve {
+  from {
+    stroke-dashoffset: var(--curve-length);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
