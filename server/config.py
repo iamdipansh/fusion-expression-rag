@@ -65,7 +65,13 @@ class Settings(BaseSettings):
 
     # Generation — BYOK, session-only key, never persisted (see conventions)
     anthropic_model: str = "claude-sonnet-5"
-    gemini_fallback_model: str = "gemini-3.6-flash"
+    # Flash-Lite, and the "latest" alias deliberately. Two things learned the hard way: the free
+    # tier's daily quota is per-model, and gemini-3.6-flash allows only 20 requests/day — at two
+    # calls per question that is ten questions a day for everyone combined. Flash-Lite carries a
+    # usable allowance. And a pinned version eventually 404s (gemini-2.0-flash did, mid-session),
+    # taking the whole service down; the alias tracks whatever the current Lite model is, trading
+    # a little reproducibility for not silently going offline.
+    gemini_fallback_model: str = "gemini-flash-lite-latest"
     # Query expansion + sufficiency gate — no API key required, small enough to sit alongside
     # bge-m3 + the reranker in memory (see the milestone-4 memory notes: shrink models before
     # tuning RAM further).

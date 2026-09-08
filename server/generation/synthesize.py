@@ -26,6 +26,14 @@ class NoGenerationKeyError(Exception):
     is available — there is nothing to synthesize an answer with."""
 
 
+class GenerationUnavailableError(Exception):
+    """The generation provider refused the request — free-tier quota exhausted, most likely.
+
+    Distinct from NoGenerationKeyError: a key exists and the request was well-formed, so this is
+    temporary and the caller should be told to retry rather than to go find a key. Raised instead
+    of letting the provider's exception surface as a bare 500, which tells a reader nothing."""
+
+
 _SYSTEM_PROMPTS: dict[AnswerTier, str] = {
     "GROUNDED": (
         "You are grounding Fusion (DaVinci Resolve) expression syntax against the official "
@@ -158,9 +166,23 @@ async def synthesize(
     question: str, chunks: list[Chunk], tier: AnswerTier, anthropic_api_key: str | None
 ) -> str:
     if anthropic_api_key:
-        return await _synthesize_with_claude(question, chunks, tier, anthropic_api_key)
+        try:
+            return await _synthesize_with_claude(question, chunks, tier, anthropic_api_key)
+        except Exception as e:
+            logger.exception("Claude synthesis failed")
+            raise GenerationUnavailableError(
+                "Claude rejected the request — check that the API key is valid and has credit."
+            ) from e
     if settings.gemini_api_key:
-        return await _synthesize_with_gemini(question, chunks, tier)
+        try:
+            return await _synthesize_with_gemini(question, chunks, tier)
+        except Exception as e:
+            logger.exception("Gemini synthesis failed")
+            raise GenerationUnavailableError(
+                "The free Gemini fallback is temporarily unavailable, most likely its daily "
+                "quota. Add your own Anthropic API key to bypass the shared limit, or try again "
+                "later."
+            ) from e
     raise NoGenerationKeyError(
         "No Anthropic API key was provided and no Gemini fallback is configured on the server."
     )
