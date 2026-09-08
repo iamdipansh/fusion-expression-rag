@@ -34,7 +34,12 @@ class Settings(BaseSettings):
     # Embedding + rerank (local, free — see "Why free is not a compromise")
     embedding_model: str = "BAAI/bge-m3"
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
-    reranker_onnx_quantized: bool = True
+    # Not implemented — retrieval/rerank.py loads the reranker via FlagEmbedding directly, not
+    # ONNX. CLAUDE.md's original motivation was mitigating cold starts on a sleep-after-idle host
+    # (Hugging Face Spaces' free tier); milestone 7 deployed to Oracle Cloud's Always Free ARM VM
+    # instead, which never sleeps, so that cold-start problem doesn't apply here. Revisit if a
+    # sleep-tier host is ever added alongside it.
+    reranker_onnx_quantized: bool = False
 
     # Retrieval — hybrid, non-negotiable
     lancedb_uri: Path = INDEX_DIR / "fusion_manual.lancedb"

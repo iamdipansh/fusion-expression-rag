@@ -1,0 +1,39 @@
+# Runs on the Oracle Cloud VM. Not used for local dev — locally, run the backend with
+# `uvicorn app.main:app --reload` and the frontend with `npm run dev` (see each README).
+services:
+  backend:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      # The prebuilt index, transferred to the VM separately (see deploy/README.md) — never
+      # baked into the image, never committed to git (see server/.gitignore's copyright note).
+      - ../server/data:/app/data:ro
+      # Model weights persist here across container restarts instead of re-downloading.
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      - FUSION_RAG_CORS_ORIGINS=${CORS_ORIGINS}
+      - FUSION_RAG_GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - BACKEND_DOMAIN=${BACKEND_DOMAIN}
+    depends_on:
+      - backend
+
+volumes:
+  hf-cache:
+  caddy-data:
+  caddy-config:

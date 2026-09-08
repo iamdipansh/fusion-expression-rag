@@ -1,0 +1,6 @@
+# Caddy issues and renews a real Let's Encrypt certificate automatically for whatever hostname
+# is here — no manual certbot setup. BACKEND_DOMAIN is the VM's public IP in sslip.io form
+# (e.g. 140-238-12-34.sslip.io), set in deploy/.env — see deploy/README.md.
+{$BACKEND_DOMAIN} {
+	reverse_proxy backend:8000
+}

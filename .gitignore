@@ -2,3 +2,7 @@
 
 # Session/runtime state, not project config
 .claude/scheduled_tasks.lock
+
+# Real deploy config (has the VM's domain, possibly a Gemini key) — deploy/.env.example is the
+# tracked template.
+deploy/.env

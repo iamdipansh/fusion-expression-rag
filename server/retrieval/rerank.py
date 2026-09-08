@@ -2,9 +2,10 @@
 gets tight, shrink the embedder, never this.
 
 Uses FlagEmbedding's FlagReranker directly rather than an ONNX-quantized export. CLAUDE.md's
-stack table calls for ONNX-quantization (~4x smaller, mitigates cold-start on free hosting
-tiers) — that's a *serving*-time optimization for milestone 7 (deploy), not needed for local
-eval/dev work now. Revisit when actually deploying.
+stack table calls for ONNX-quantization (~4x smaller) specifically to mitigate cold starts on a
+sleep-after-idle free tier (Hugging Face Spaces). Milestone 7 deployed to Oracle Cloud's Always
+Free ARM VM instead, which never sleeps — see config.py's reranker_onnx_quantized note. Revisit
+if a sleep-tier host is ever added alongside it.
 """
 
 from FlagEmbedding import FlagReranker
